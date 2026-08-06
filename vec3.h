@@ -9,32 +9,28 @@ public:
     double z;
 
 
-    double dot(const Vec3& other) {
+    double dot(const Vec3& other) const {
         return x * other.x + y * other.y + z * other.z;
     }
 
-    Vec3 cross(const Vec3& other) {
+    Vec3 cross(const Vec3& other) const {
         return Vec3 {y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x};
     }
 
-    double length() {
+    double length() const {
         return std::sqrt(x * x + y * y + z * z);
     }
 
-    Vec3 normalized() {
+    Vec3 normalized() const {
         return *this / length();
     }
 
-    double length_squared() {
+    double length_squared() const {
         return x * x + y * y + z * z;
     }
 
-    Vec3& operator-() {
-        x = -x;
-        y = -y;
-        z = -z;
-
-        return *this;
+    Vec3 operator-() const {
+        return Vec3 {-x, -y, -z};
     }
 
     Vec3 operator+(const Vec3& other) const {

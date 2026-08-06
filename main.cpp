@@ -15,14 +15,13 @@ int main() {
     Camera camera {
             Point {0, 0, -3},
             Point {0, 0, 0},
-            static_cast<double>(image_width),
-            static_cast<double>(image_height),
+            aspect_ratio,
             fov
     };
-    Sphere s {Point{0, 0, 50}, 10};
+    Sphere s {Point{0, 0, 50}, 20};
     World world {s};
 
-    Renderer renderer {camera, world};
+    Renderer renderer {std::move(camera), std::move(world)};
     auto result = renderer.generate_pixels_from_camera(image_width, image_height);
 
     write_ppm(result, image_width, image_height);

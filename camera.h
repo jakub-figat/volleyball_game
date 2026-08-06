@@ -27,14 +27,11 @@ private:
     Vec3 true_up;
     Vec3 right;
 
-    double width;
-    double height;
     double aspect_ratio;
     double fov_scale;
 
 public:
-    Camera(Point p, Point l, double w, double h, double fov): position(p), look_at(l), width(w), height(h) {
-        aspect_ratio = width / height;
+    Camera(Point p, Point l, double ar, double fov): position(p), look_at(l), aspect_ratio(ar) {
         double radians = fov * PI / 180.0;
         fov_scale = std::tan(radians / 2.0);
 
@@ -44,12 +41,10 @@ public:
         true_up = forward.cross(right).normalized();
     }
 
-    Ray cast_ray(double x, double y) {
-        double norm_x = (x + 0.5) / width;
-        double norm_y = (y + 0.5) / height;
-    
-        double pos_x = (2 * norm_x - 1) * aspect_ratio * fov_scale; 
-        double pos_y = (1 - 2 * norm_y) * fov_scale;
+    // u, v passed here must be normalized by width and height first [-1, 1]
+    Ray cast_ray(double u, double v) {
+        double pos_x = u * aspect_ratio * fov_scale; 
+        double pos_y = v * fov_scale;
 
         return Ray {position, (pos_x * right + pos_y * true_up + forward).normalized()};
     }
