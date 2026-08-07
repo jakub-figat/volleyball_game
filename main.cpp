@@ -18,8 +18,13 @@ int main() {
             aspect_ratio,
             fov
     };
-    Sphere s {Point{0, 0, 50}, 20};
-    World world {s};
+    Sphere s1 {Point{-100, -20, 100}, 20, Color {255, 120, 0}};
+    Sphere s2 {Point{100, -20, 100}, 20, Color {70, 150, 200}};
+    Sphere s3 {Point{0, 25, 100}, 20, Color {150, 150, 200}};
+
+    Vec3 sun_direction {1, -1, 1};
+
+    World world {std::vector {s1, s2, s3}, sun_direction.normalized(), Color {200, 200, 200}};
 
     Renderer renderer {std::move(camera), std::move(world)};
     auto result = renderer.generate_pixels_from_camera(image_width, image_height);

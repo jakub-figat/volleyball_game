@@ -42,11 +42,15 @@ public:
     }
 
     Vec3 operator-(const Vec3& other) const {
-        return Vec3 {x - other.x, y - other.y, z -other.z};
+        return Vec3 {x - other.x, y - other.y, z - other.z};
     }
 
     Vec3 operator-(double num) const {
         return Vec3 {x - num, y - num, z - num};
+    }
+
+    Vec3 operator*(const Vec3& other) const {
+        return Vec3 {x * other.x, y * other.y, z * other.z};
     }
 
     Vec3 operator*(double num) const {
@@ -107,6 +111,7 @@ public:
 };
 
 using Point = Vec3;
+using Color = Vec3;
 
 
 std::ostream& operator<<(std::ostream& os, const Vec3& vec) {

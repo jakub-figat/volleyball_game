@@ -1,8 +1,8 @@
 #pragma once
 
-#include "color.h"
 #include "camera.h"
 #include "world.h"
+#include <math.h>
 #include <vector>
 
 
@@ -18,6 +18,8 @@ public:
         int width,
         int height
     ) {
+        Color background{135, 206, 235};
+
         std::vector<Color> pixel_result;
         pixel_result.resize(static_cast<size_t>(width*height));
 
@@ -30,7 +32,21 @@ public:
                 
                 auto ray = camera.cast_ray(u, v);
                 auto hit_record = world.intersect(ray);
-                auto color = hit_record.has_value() ? Color{0, 0, 0} : Color{135, 206, 235};
+                Color color;
+
+                if (hit_record.has_value()) {
+                    color = hit_record->color;
+
+                    auto light_intensity = std::max(0.0, hit_record->surface_normal.dot(-world.light_direction));
+
+                    Ray shadow_ray {hit_record->point + (-world.light_direction)*0.05, -world.light_direction};
+                    auto shadow_factor = world.intersect(shadow_ray).has_value() ? 0.0 : 1.0;
+                    auto normalized_color = (color / 255.0) * (world.light_color / 255.0);
+
+                    color = normalized_color * 255.0 * shadow_factor * light_intensity;
+                } else {
+                    color = background;
+                }
 
                 pixel_result[static_cast<size_t>(j * width + i)] = color;
             }
