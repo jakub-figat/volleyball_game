@@ -1,6 +1,8 @@
 #include "game.h"
 #include <array>
 #include <print>
+#include <thread>
+#include <chrono>
 #include <SFML/Graphics.hpp>
 
 
@@ -20,7 +22,27 @@
 
 int main() {
     sf::RenderWindow window(sf::VideoMode({static_cast<int>(WIDTH), static_cast<int>(HEIGHT)}), "vgame", sf::Style::Close);
-    sf::Vector2f rectangle_shape {10.f, 50.f};
+    sf::Font font("Pixel Game.otf");
+
+    sf::Text main_text(font);
+    main_text.setString("Press ENTER to start");
+
+    sf::Text text_1(font);
+    sf::Text text_2(font);
+
+    text_1.setCharacterSize(45);
+    text_2.setCharacterSize(45);
+    main_text.setCharacterSize(45);
+
+    text_1.setFillColor(sf::Color::White);
+    text_2.setFillColor(sf::Color::White);
+    main_text.setFillColor(sf::Color::White);
+
+    text_1.move({30.0, 30.0});
+    text_2.move({30.0, 60.0});
+    main_text.move({30.0f, 90.0f});
+
+    sf::Vector2f rectangle_shape {20.f, 60.f};
 
     std::array<Rectangle, 2> rectangles {
         Rectangle {sf::RectangleShape {rectangle_shape}, PADDLE_SPEED, 0.0},
@@ -35,7 +57,7 @@ int main() {
 
     Ball ball {sf::RectangleShape{{BALL_SIZE, BALL_SIZE}}, 0.0, 0.0};
     ball.shape.setFillColor(sf::Color::White);
-    ball.shape.setPosition({MIDDLE - BALL_SIZE / 2.0f, 200.0});
+    ball.shape.setPosition(BALL_START_POSITION);
     ball.serve();
     
 
@@ -50,6 +72,10 @@ int main() {
 
     window.setFramerateLimit(120);
     sf::Clock clock;
+    unsigned int score_1 = 0;
+    unsigned int score_2 = 0;
+    bool started = false;
+    
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -58,12 +84,29 @@ int main() {
             }
         }
 
-        auto dt = clock.restart().asSeconds();
-        compute_velocities(dt, rectangles, ball);
-        make_move(dt, rectangles, ball);
-        do_rectangle_collisions(rectangles, net);
-        do_ball_collisions(ball, net, rectangles);
+        if (started) {
+            auto dt = clock.restart().asSeconds();
+            compute_velocities(dt, rectangles, ball);
+            make_move(dt, rectangles, ball);
+            do_rectangle_collisions(rectangles, net);
+            do_ball_collisions(ball, net, rectangles, score_1, score_2);
+        } else {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter)) {
+                clock.reset();
+                started = true;
+                score_1 = 0;
+                score_2 = 0;
+            }
+        }
 
+        if (score_1 == 10 || score_2 == 10) {
+            started = false;
+            main_text.setString(std::format("Player {} won! Press ENTER to restart", score_1 > score_2 ? "1" : "2"));
+        }
+
+
+        text_1.setString(std::format("Player 1: {}", score_1));
+        text_2.setString(std::format("Player 2: {}", score_2));
         window.clear(sf::Color::Black);
 
         for (const auto& rectangle : rectangles) {
@@ -73,6 +116,13 @@ int main() {
         window.draw(line);
         window.draw(net);
         window.draw(ball.shape);
+        window.draw(text_1);
+        window.draw(text_2);
+
+        if (!started) {
+            window.draw(main_text);
+        }
+
         window.display();
     }
 
