@@ -1,5 +1,7 @@
 {
     "name": "ray-tracer",
     "version-string": "1.0.0",
-    "dependencies": []
+    "dependencies": [
+        "sfml"
+    ]
 }

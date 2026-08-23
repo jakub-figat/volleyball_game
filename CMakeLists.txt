@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(learning LANGUAGES CXX)
+project(vgame LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -61,8 +61,15 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     endif()
 endif()
 
-add_executable(ray-tracer main.cpp)
 
-target_link_libraries(ray-tracer PRIVATE
+find_package(SFML 3 COMPONENTS Graphics Window System Audio REQUIRED)
+add_executable(vgame main.cpp)
+
+
+target_link_libraries(vgame PRIVATE
     project_warnings
+    SFML::Graphics
+    SFML::Window
+    SFML::System
+    SFML::Audio
 )
