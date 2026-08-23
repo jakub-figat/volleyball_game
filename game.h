@@ -1,6 +1,8 @@
 #pragma once
 
 #include "constants.cpp"
+#include <random>
+#include <print>
 #include <SFML/Graphics.hpp>
 
 struct Rectangle {
@@ -12,8 +14,18 @@ struct Rectangle {
     }
 };
 
+
+static std::mt19937 gen(std::random_device{}());
+
+
 struct Ball : Rectangle {
-    
+    // random ball drop
+    void serve() {
+        std::uniform_real_distribution<float> distrib_x(-300, 300);
+        std::uniform_real_distribution<float> distrib_y(-1, 0);
+        velocity_x = distrib_x(gen);
+        velocity_y = distrib_y(gen);
+    }
 };
 
 
@@ -33,19 +45,32 @@ void make_move(float dt, std::array<Rectangle, 2>& rectangles, Ball& ball) {
     for (auto& rectangle : rectangles) {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
             rectangle.shape.move({-rectangle.velocity_x * dt, 0.0});
-
-            ball.shape.move({-rectangle.velocity_x * dt, 0.0});
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
             rectangle.shape.move({rectangle.velocity_x * dt, 0.0});
-            ball.shape.move({rectangle.velocity_x * dt, 0.0});
         }
-        rectangle.shape.move({0, rectangle.velocity_y * dt});
     }
-
-    ball.shape.move({0.0, ball.velocity_y * dt});
+    ball.shape.move({ball.velocity_x * dt, ball.velocity_y * dt});
 }
+
+
+// pass rectangle borders, returns movement vector
+// sf::Vector2f collide_with_borders(float x, float y, float max_x, float max_y) {
+//     if (x < 0.0f) {
+//         return {-x, 0.0};
+//     } else if (max_x > WIDTH) {
+//         return {WIDTH - max_x, 0.0};
+//     }
+
+//     if (max_y > FLOOR_HEIGHT) {
+//         rectangle.velocity_y = 0.0;
+//         rectangle.shape.move({0.0, FLOOR_HEIGHT - rectangle_max_y});
+//     } else if (rectangle_y < 0.0f) {
+//         rectangle.velocity_y = 0.0;
+//         rectangle.shape.move({0.0, -rectangle_y});
+//     }
+// }
 
 
 // so maybe detecting collision in y axis could really set vel_y to 0
@@ -86,7 +111,7 @@ void do_rectangle_collisions(std::array<Rectangle, 2>& rectangles, sf::Rectangle
     }
 }
 
-void do_ball_collisions(Ball& ball, sf::RectangleShape& net) {
+void do_ball_collisions(Ball& ball, sf::RectangleShape& net, std::array<Rectangle, 2>& rectangles) {
     // when border or net is hit, reverse the vector
     auto [ball_x, ball_y] = ball.shape.getPosition();
     auto [ball_max_x, ball_max_y] = ball.get_max_position();
@@ -111,7 +136,7 @@ void do_ball_collisions(Ball& ball, sf::RectangleShape& net) {
         ball.shape.move({0.0, -ball_y});
     }
 
-    // // net collision has to be different
+    // net collision has to be different
     // when below net_y, check from sides
     // when above, check the ball bottom
 
@@ -126,11 +151,27 @@ void do_ball_collisions(Ball& ball, sf::RectangleShape& net) {
     if (ball_max_y > net_y && ball_y + ball_radius < net_y && (ball_center > net_x - ball_radius && ball_center < net_max_x + ball_radius)) {
         ball.velocity_y = -ball.velocity_y;
         ball.shape.move({0.0, net_y - ball_max_y});
+
+    } else if (ball_y + ball_radius >= net_y) {
+        if (ball_max_x > net_x && ball_x < net_x) {
+            ball.velocity_x = -ball.velocity_x;
+            ball.shape.move({net_x - ball_max_x, 0.0});
+            
+        } else if (ball_x < net_max_x && ball_max_x > net_max_x) {
+            ball.velocity_x = -ball.velocity_x;
+            ball.shape.move({net_max_x - ball_x, 0.0});
+        }
     }
 
-    // if (ball_max_x > net_x && ball_x < net_x) {
-    //     ball.shape.move({net_x - ball_max_x, 0.0});
-    // } else if (ball_x < net_max_x && ball_max_x > net_max_x) {
-    //     ball.shape.move({net_max_x - ball_x, 0.0});
-    // }
+    // collision with top of paddle, multiply velocity if moving in same direction, decrease if opposite, and neutral if paddle is stationary
+    for (auto& rectangle : rectangles) {
+        auto [rectangle_x, rectangle_y] = rectangle.shape.getPosition();
+        auto rectangle_max_x = rectangle.get_max_position().x;
+        // paddle top hit, no need to check side hit when below head
+
+        if (ball_max_y > rectangle_y && ball_y + ball_radius < rectangle_y && (ball_center > rectangle_x - ball_radius && ball_center < rectangle_max_x + ball_radius)) {
+            ball.velocity_y = -ball.velocity_y;
+            ball.shape.move({0.0, rectangle_y - ball_max_y});
+        }
+    }
 }

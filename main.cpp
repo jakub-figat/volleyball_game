@@ -23,8 +23,8 @@ int main() {
     sf::Vector2f rectangle_shape {10.f, 50.f};
 
     std::array<Rectangle, 2> rectangles {
-        Rectangle {sf::RectangleShape {rectangle_shape}, 200.0, 0.0},
-        Rectangle {sf::RectangleShape {rectangle_shape}, 200.0, 0.0},
+        Rectangle {sf::RectangleShape {rectangle_shape}, PADDLE_SPEED, 0.0},
+        Rectangle {sf::RectangleShape {rectangle_shape}, PADDLE_SPEED, 0.0},
     };
 
     rectangles[0].shape.setPosition({MIDDLE - 200, FLOOR_HEIGHT - rectangle_shape.y});
@@ -36,6 +36,7 @@ int main() {
     Ball ball {sf::RectangleShape{{BALL_SIZE, BALL_SIZE}}, 0.0, 0.0};
     ball.shape.setFillColor(sf::Color::White);
     ball.shape.setPosition({MIDDLE - BALL_SIZE / 2.0f, 200.0});
+    ball.serve();
     
 
     sf::RectangleShape line(sf::Vector2f(WIDTH, 1.0f));
@@ -61,7 +62,7 @@ int main() {
         compute_velocities(dt, rectangles, ball);
         make_move(dt, rectangles, ball);
         do_rectangle_collisions(rectangles, net);
-        do_ball_collisions(ball, net);
+        do_ball_collisions(ball, net, rectangles);
 
         window.clear(sf::Color::Black);
 
