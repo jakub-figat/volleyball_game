@@ -3,21 +3,8 @@
 #include <print>
 #include <thread>
 #include <chrono>
+#include <vector>
 #include <SFML/Graphics.hpp>
-
-
-// do I separate velocity and distance computation for collision checks?
-// should this function always increase velocity_y and collision function should always set it to 0 later?
-// or different compute_position function?
-
-// is compute_velocity -> make_move -> do collisions good order? Where last step sticks  border of one rectangle to the other and sets velocity to 0?
-
-
-// so far, keys, jumps, collisions with net and borders look good
-// there definitely is a collision bug with net if fps is set to very low
-// this could be fixed by calculating move trajectory and if checking if movement will not occur through the net
-// bug happens because there is much more movement per frame with low fps and at no point in time Rectangle borders cross the net borders
-
 
 
 int main() {
@@ -65,21 +52,25 @@ int main() {
     line.setPosition({0, FLOOR_HEIGHT});
     line.setFillColor(sf::Color::White);
 
-    sf::RectangleShape net({10.0f, 100.0f});
+    sf::RectangleShape net({10.0f, 150.0f});
     net.setPosition({MIDDLE - 5.0f, FLOOR_HEIGHT - net.getSize().y});
     net.setFillColor(sf::Color::White);
 
-
-    std::array<sf::RectangleShape, 5> walls {
-        sf::RectangleShape{{1.0f, HEIGHT}},
-        sf::RectangleShape{{1.0f, HEIGHT}},
-        sf::RectangleShape{{WIDTH, 1.0f}},
-        sf::RectangleShape{{WIDTH, 1.0f}},
+    std::vector<sf::RectangleShape> walls {
+        sf::RectangleShape{{100.0f, HEIGHT}},
+        sf::RectangleShape{{100.0f, HEIGHT}},
+        sf::RectangleShape{{WIDTH, 100.0f}},
+        sf::RectangleShape{{WIDTH, 100.0f}},
         net
     };
 
+    walls[0].setPosition({-100.0f, 0.0f});
     walls[1].setPosition({WIDTH, 0.0});
+    walls[2].setPosition({0.0f, -100.0f});
     walls[3].setPosition({0.0, HEIGHT});
+
+    sf::RectangleShape floor {{WIDTH, 2.0f}};
+    floor.setPosition({0.0f, FLOOR_HEIGHT});
 
 
     window.setFramerateLimit(120);
@@ -100,9 +91,7 @@ int main() {
             auto dt = clock.restart().asSeconds();
             compute_velocities(dt, rectangles, ball);
             make_move(dt, rectangles, ball);
-            // resolve_collisions(rectangles, net, ball, walls);
-            do_rectangle_collisions(rectangles, net);
-            do_ball_collisions(ball, net, rectangles, score_1, score_2);
+            resolve_collisions(rectangles, ball, walls, floor, score_1, score_2);
         } else {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter)) {
                 clock.reset();
