@@ -5,6 +5,7 @@
 #include <print>
 #include <SFML/Graphics.hpp>
 
+
 struct Rectangle {
     sf::RectangleShape shape;
     float velocity_x, velocity_y;
@@ -12,6 +13,11 @@ struct Rectangle {
     sf::Vector2f get_max_position() const {
         return shape.getPosition() + shape.getSize();
     }
+};
+
+
+struct Overlap {
+    float x, y;
 };
 
 
@@ -60,22 +66,48 @@ void make_move(float dt, std::array<Rectangle, 2>& rectangles, Ball& ball) {
 }
 
 
-// pass rectangle borders, returns movement vector
-// sf::Vector2f collide_with_borders(float x, float y, float max_x, float max_y) {
-//     if (x < 0.0f) {
-//         return {-x, 0.0};
-//     } else if (max_x > WIDTH) {
-//         return {WIDTH - max_x, 0.0};
-//     }
+std::optional<Overlap> get_overlap(const sf::RectangleShape& rectangle, const sf::RectangleShape& other) {
+    auto [rectangle_x, rectangle_y] = rectangle.getPosition();
+    auto [rectangle_max_x, rectangle_max_y] = rectangle.getPosition() + rectangle.getSize();
 
-//     if (max_y > FLOOR_HEIGHT) {
-//         rectangle.velocity_y = 0.0;
-//         rectangle.shape.move({0.0, FLOOR_HEIGHT - rectangle_max_y});
-//     } else if (rectangle_y < 0.0f) {
-//         rectangle.velocity_y = 0.0;
-//         rectangle.shape.move({0.0, -rectangle_y});
-//     }
-// }
+    auto [other_x, other_y] = other.getPosition();
+    auto [other_max_x, other_max_y] = other.getPosition() + other.getSize();
+
+
+    float overlap_x = std::min(rectangle_max_x, other_max_x) - std::max(rectangle_x, other_x);
+    float overlap_y = std::min(rectangle_max_y, other_max_y) - std::max(rectangle_y, other_y);
+
+    if (overlap_x <= 0 || overlap_y <= 0) {
+        return std::nullopt;
+    }
+
+    return Overlap {overlap_x, overlap_y};
+}
+
+
+void resolve_collisions(std::array<Rectangle, 2>& rectangles, sf::RectangleShape& net, Ball& ball, const std::array<sf::RectangleShape, 5>& walls) {
+    resolve_rectangles_with_solids(rectangles, walls);
+    resolve_rectangles_with_floor(rectangles);
+    resolve_ball_with_solids(ball, walls);
+    resolve_ball_with_floor(ball);
+    resolve_ball_with_rectangles(ball, rectangles);
+}
+
+
+void resolve_rectangles_with_solids(std::array<Rectangle, 2>& rectangles, const std::array<sf::RectangleShape, 5>& walls) {
+    for (auto& rectangle: rectangles) {
+        for (const auto& wall : walls) {
+            if (auto overlap = get_overlap(rectangle.shape, wall)) {
+                
+            }
+        }
+    }
+}
+
+void resolve_rectangles_with_floor(std::array<Rectangle, 2>& rectangles);
+void resolve_ball_with_solids(Ball& ball, const std::array<sf::RectangleShape, 5>& walls);
+void resolve_ball_with_floor(Ball& ball);
+void resolve_ball_with_rectangles(Ball& ball, std::array<Rectangle, 2>& rectangles);
 
 
 // so maybe detecting collision in y axis could really set vel_y to 0

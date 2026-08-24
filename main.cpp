@@ -70,6 +70,18 @@ int main() {
     net.setFillColor(sf::Color::White);
 
 
+    std::array<sf::RectangleShape, 5> walls {
+        sf::RectangleShape{{1.0f, HEIGHT}},
+        sf::RectangleShape{{1.0f, HEIGHT}},
+        sf::RectangleShape{{WIDTH, 1.0f}},
+        sf::RectangleShape{{WIDTH, 1.0f}},
+        net
+    };
+
+    walls[1].setPosition({WIDTH, 0.0});
+    walls[3].setPosition({0.0, HEIGHT});
+
+
     window.setFramerateLimit(120);
     sf::Clock clock;
     unsigned int score_1 = 0;
@@ -88,6 +100,7 @@ int main() {
             auto dt = clock.restart().asSeconds();
             compute_velocities(dt, rectangles, ball);
             make_move(dt, rectangles, ball);
+            // resolve_collisions(rectangles, net, ball, walls);
             do_rectangle_collisions(rectangles, net);
             do_ball_collisions(ball, net, rectangles, score_1, score_2);
         } else {
